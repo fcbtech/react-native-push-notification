@@ -475,6 +475,7 @@ public class RNPushNotificationHelper {
                 } else {
                     notificationManager.notify(notificationID, info);
                 }
+                Log.i('Notification sent, logEvent here');
             }
 
             // Can't use setRepeating for recurring notifications because setRepeating
