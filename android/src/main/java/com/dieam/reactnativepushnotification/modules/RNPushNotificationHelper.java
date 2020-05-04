@@ -26,6 +26,8 @@ import android.service.notification.StatusBarNotification;
 import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
+import com.google.firebase.analytics.FirebaseAnalytics;
+
 import com.facebook.react.bridge.Arguments;
 import com.facebook.react.bridge.ReadableArray;
 import com.facebook.react.bridge.ReadableMap;
@@ -57,10 +59,16 @@ public class RNPushNotificationHelper {
     private static final long ONE_HOUR = 60 * ONE_MINUTE;
     private static final long ONE_DAY = 24 * ONE_HOUR;
 
+    // [START declare_analytics]
+    private FirebaseAnalytics mFirebaseAnalytics;
+    // [END declare_analytics]
+
     public RNPushNotificationHelper(Application context) {
         this.context = context;
         this.config = new RNPushNotificationConfig(context);
         this.scheduledNotificationsPersistence = context.getSharedPreferences(RNPushNotificationHelper.PREFERENCES_KEY, Context.MODE_PRIVATE);
+        // Obtain the FirebaseAnalytics instance.
+        mFirebaseAnalytics = FirebaseAnalytics.getInstance(context);
     }
 
     public Class getMainActivityClass() {
@@ -475,6 +483,17 @@ public class RNPushNotificationHelper {
                 } else {
                     notificationManager.notify(notificationID, info);
                 }
+
+                // [START custom_event]
+                Bundle notiData = bundle.getParcelable("data");
+                if (notiData == null) notiData = new Bundle();
+                // Log.i("Vaibhav", "Notification sent, logEvent here");
+                // Log.i("vaibhav", notiData.toString());
+                // for (String key : notiData.keySet()) {
+                //     Log.d("Vaibhav", key + " = \"" + notiData.get(key) + "\"");
+                // }
+                mFirebaseAnalytics.logEvent("local_notification_receive", notiData);
+                // [END custom_event]
             }
 
             // Can't use setRepeating for recurring notifications because setRepeating
