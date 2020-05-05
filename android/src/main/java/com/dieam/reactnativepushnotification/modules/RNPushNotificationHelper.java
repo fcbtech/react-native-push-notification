@@ -487,12 +487,15 @@ public class RNPushNotificationHelper {
                 // [START custom_event]
                 Bundle notiData = bundle.getParcelable("data");
                 if (notiData == null) notiData = new Bundle();
+                String analyticsEvent = notiData.getString("analyticsEvent");
+                if (analyticsEvent != null) {
+                    mFirebaseAnalytics.logEvent(analyticsEvent, notiData);
+                }
                 // Log.i("Vaibhav", "Notification sent, logEvent here");
                 // Log.i("vaibhav", notiData.toString());
                 // for (String key : notiData.keySet()) {
                 //     Log.d("Vaibhav", key + " = \"" + notiData.get(key) + "\"");
                 // }
-                mFirebaseAnalytics.logEvent("local_notification_receive", notiData);
                 // [END custom_event]
             }
 
