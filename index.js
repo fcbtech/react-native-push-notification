@@ -18,7 +18,7 @@ var Notifications = {
 	onNotification: false,
   onRemoteFetch: false,
 	isLoaded: false,
-	hasPoppedInitialNotification: false,
+	idInitialNotification: null,
 
 	isPermissionsRequestPending: false,
 
@@ -84,14 +84,17 @@ Notifications.configure = function(options) {
 		this.isLoaded = true;
 	}
 
-	if ( this.hasPoppedInitialNotification === false &&
-			( options.popInitialNotification === undefined || options.popInitialNotification === true ) ) {
+	if (options.popInitialNotification === undefined || options.popInitialNotification === true) {
 		this.popInitialNotification(function(firstNotification) {
 			if ( firstNotification !== null ) {
-				this._onNotification(firstNotification, true);
+        if(this.idInitialNotification === firstNotification.id) {
+          return;
+        }
+        
+        this.idInitialNotification = firstNotification.id;
+        this._onNotification(firstNotification, true);
 			}
-		}.bind(this));
-		this.hasPoppedInitialNotification = true;
+    }.bind(this));
 	}
 
 	if ( options.requestPermissions !== false ) {
@@ -140,6 +143,27 @@ Notifications.localNotification = function(details) {
 			userInfo: details.userInfo
 		});
 	} else {
+    if(details && typeof details.id === 'number') {
+      if(isNaN(details.id)) {
+        console.warn('NaN value has been passed as id');
+        delete details.id;
+      }
+      else {
+        details.id = '' + details.id;
+      }
+    }
+
+    if(details && typeof details.number === 'number') {
+      if(isNaN(details.number)) {
+        console.warn('NaN value has been passed as number');
+        delete details.number;
+      }
+      else {
+        details.number = '' + details.number;
+      }
+    }
+  
+  
 		this.handler.presentLocalNotification(details);
 	}
 };
@@ -178,6 +202,26 @@ Notifications.localNotificationSchedule = function(details) {
 		}
 		this.handler.scheduleLocalNotification(iosDetails);
 	} else {
+    if(details && typeof details.id === 'number') {
+      if(isNaN(details.id)) {
+        console.warn('NaN value has been passed as id');
+        delete details.id;
+      }
+      else {
+        details.id = '' + details.id;
+      }
+    }
+
+    if(details && typeof details.number === 'number') {
+      if(isNaN(details.number)) {
+        console.warn('NaN value has been passed as number');
+        delete details.number;
+      }
+      else {
+        details.number = '' + details.number;
+      }
+    }
+  
 		details.fireDate = details.date.getTime();
 		delete details.date;
 		// ignore iOS only repeatType
@@ -315,13 +359,14 @@ Notifications.popInitialNotification = function(handler) {
 	});
 };
 
-Notifications.abandonPermissions = function() {
-	return this.callNative('abandonPermissions', arguments);
-};
-
 Notifications.checkPermissions = function() {
 	return this.callNative('checkPermissions', arguments);
 };
+
+/* Abandon Permissions */
+Notifications.abandonPermissions = function() {
+	return this.callNative('abandonPermissions', arguments);
+}
 
 Notifications.registerNotificationActions = function() {
 	return this.callNative('registerNotificationActions', arguments)

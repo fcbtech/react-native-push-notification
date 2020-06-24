@@ -88,13 +88,19 @@ public class RNPushNotificationHelper {
     }
 
     private PendingIntent toScheduleNotificationIntent(Bundle bundle) {
-        int notificationID = Integer.parseInt(bundle.getString("id"));
+        try {
+            int notificationID = Integer.parseInt(bundle.getString("id"));
 
-        Intent notificationIntent = new Intent(context, RNPushNotificationPublisher.class);
-        notificationIntent.putExtra(RNPushNotificationPublisher.NOTIFICATION_ID, notificationID);
-        notificationIntent.putExtras(bundle);
+            Intent notificationIntent = new Intent(context, RNPushNotificationPublisher.class);
+            notificationIntent.putExtra(RNPushNotificationPublisher.NOTIFICATION_ID, notificationID);
+            notificationIntent.putExtras(bundle);
 
-        return PendingIntent.getBroadcast(context, notificationID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+            return PendingIntent.getBroadcast(context, notificationID, notificationIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Unable to parse Notification ID", e);
+        }
+
+        return null;
     }
 
     public void sendNotificationScheduled(Bundle bundle) {
@@ -144,6 +150,10 @@ public class RNPushNotificationHelper {
         // If the fireDate is in past, this will fire immediately and show the
         // notification to the user
         PendingIntent pendingIntent = toScheduleNotificationIntent(bundle);
+
+        if(pendingIntent == null) {
+            return;
+        }
 
         Log.d(LOG_TAG, String.format("Setting a notification with id %s at time %s",
                 bundle.getString("id"), Long.toString(fireDate)));
@@ -367,11 +377,13 @@ public class RNPushNotificationHelper {
                         }
 
                         soundUri = Uri.parse("android.resource://" + context.getPackageName() + "/" + resId);
-
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // API 26 and higher
-                            channel_id = channel_id + "-" + soundName;
-                        }
                     }
+                } else {
+                    soundName = "default";
+                }
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) { // API 26 and higher
+                    channel_id = channel_id + "-" + soundName;
                 }
 
                 notification.setSound(soundUri);
@@ -658,7 +670,11 @@ public class RNPushNotificationHelper {
         // remove it from the alarm manger schedule
         Bundle b = new Bundle();
         b.putString("id", notificationIDString);
-        getAlarmManager().cancel(toScheduleNotificationIntent(b));
+        PendingIntent pendingIntent = toScheduleNotificationIntent(b);
+
+        if(pendingIntent != null) {
+            getAlarmManager().cancel(pendingIntent);
+        }
 
         if (scheduledNotificationsPersistence.contains(notificationIDString)) {
             // remove it from local storage
@@ -672,7 +688,11 @@ public class RNPushNotificationHelper {
         // removed it from the notification center
         NotificationManager notificationManager = notificationManager();
 
-        notificationManager.cancel(Integer.parseInt(notificationIDString));
+        try {
+            notificationManager.cancel(Integer.parseInt(notificationIDString));
+        } catch (Exception e) {
+            Log.e(LOG_TAG, "Unable to parse Notification ID " + notificationIDString, e);
+        }
     }
 
     private NotificationManager notificationManager() {
@@ -691,10 +711,15 @@ public class RNPushNotificationHelper {
       NotificationManager manager = notificationManager();
 
       int importance = NotificationManager.IMPORTANCE_HIGH;
+      Uri soundUri = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+      
+      // Instanciate a default channel with default sound.
+      String channel_id_sound = NOTIFICATION_CHANNEL_ID + "-default-" + importance + "-" + DEFAULT_VIBRATION;
+      checkOrCreateChannel(manager, channel_id_sound, soundUri, importance, new long[] {0, DEFAULT_VIBRATION});
 
-      String channel_id = NOTIFICATION_CHANNEL_ID + "-" + importance + "-" + DEFAULT_VIBRATION;
-
-      checkOrCreateChannel(manager, channel_id, null, importance, new long[] {0, DEFAULT_VIBRATION});
+      // Instanciate a default channel without sound defined for backward compatibility.
+      String channel_id_no_sound = NOTIFICATION_CHANNEL_ID + "-" + importance + "-" + DEFAULT_VIBRATION;
+      checkOrCreateChannel(manager, channel_id_no_sound, null, importance, new long[] {0, DEFAULT_VIBRATION});
     }
 
     private void checkOrCreateChannel(NotificationManager manager, String channel_id, Uri soundUri, int importance, long[] vibratePattern) {
@@ -716,7 +741,7 @@ public class RNPushNotificationHelper {
             if (soundUri != null) {
                 AudioAttributes audioAttributes = new AudioAttributes.Builder()
                         .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
-                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setUsage(AudioAttributes.USAGE_NOTIFICATION)
                         .build();
 
                 channel.setSound(soundUri, audioAttributes);

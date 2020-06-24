@@ -11,6 +11,51 @@ and this project adheres to [Semantic Versioning](http://semver.org/spec/v2.0.0.
 
 ### Fixed
 
+## [3.5.2] - 2020-05-25
+
+### Fixed
+
+- (Android) Sounds are playing even in Do Not Disturb [#1432](https://github.com/zo0r/react-native-push-notification/issues/1432#issuecomment-633367111)
+- (Android) onNotification fires every time when the app goes from background to foreground [#1455](https://github.com/zo0r/react-native-push-notification/issues/1455)
+- (Android) java.lang.NullPointerException: Attempt to invoke virtual method 'void com.dieam.reactnativepushnotification.modules.d.c(android.os.Bundle)' on a null object reference [#1431](https://github.com/zo0r/react-native-push-notification/issues/1431#issuecomment-633315150)
+
+## [3.5.1] - 2020-05-20
+
+### Fixed
+
+- (Android) When updating 3.4 to 3.5, unable to compile Android [#1449](https://github.com/zo0r/react-native-push-notification/pull/1449)
+
+## [3.5.0] - 2020-05-20
+
+### Features
+
+- (Android) Enables the ability to support multiple push providers [#1445](https://github.com/zo0r/react-native-push-notification/pull/1445)
+
+### Fixed
+
+- (Android) No sound on notifications [#1432](https://github.com/zo0r/react-native-push-notification/issues/1432)
+- (Android) onNotification is not calling when app is in background [#1446](https://github.com/zo0r/react-native-push-notification/pull/1446)
+- (Android) `number` and `id` do not crash if NaN is passed in Android.
+
+## [3.4.0] - 2020-05-08
+
+### Features
+
+- (Android) Call `onRegister` when [Firebase renew token](<https://firebase.google.com/docs/reference/android/com/google/firebase/messaging/FirebaseMessagingService#onNewToken(java.lang.String)>).
+- (Android) Added Abandon Permissions method to Android [#1425](https://github.com/zo0r/react-native-push-notification/pull/1425)
+- (Android) Add a new key in `AndroidManifest.xml` to allow/remove notification in foreground.
+
+```xml
+        <meta-data  android:name="com.dieam.reactnativepushnotification.notification_foreground"
+                    android:value="false"/>
+```
+
+### Fixed
+
+- (Android) `number` and `id` are now correctly handled as number in Android.
+- (iOS) Update push-notification-ios to 1.2.0 [#1410](https://github.com/zo0r/react-native-push-notification/pull/1410)
+- Make sure to import PushNotificationIOS from react-native first [#617](https://github.com/zo0r/react-native-push-notification/pull/617)
+
 ## [3.3.1] - 2020-05-01
 
 ### Fixed
